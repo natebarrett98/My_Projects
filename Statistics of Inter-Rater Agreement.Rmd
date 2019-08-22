@@ -1,0 +1,337 @@
+---
+title: 'Statistic of Inter-Rater Agreement of Surgical Procedures'
+author: "Nathaniel Barrett"
+date: "March 29th, 2019"
+output:
+  ioslides_presentation: default
+  beamer_presentation: default
+widescreen: yes
+---
+
+##
+
+To get an intial look at the agreement of choices between the respectable professions, we first look to measure the raw percentage of agreement found in the data this will give us some "region" of interpretation of how much the professionals agree with each other.
+
+
+This calculation is found by 
+
+$$\frac{agreements}{agreements + disagreements}$$
+
+
+##Calculation (Nurse/OP's) [Apadectemy]
+
+```{r}
+rper_value1 <- 5/108
+rper_value1
+```
+
+##Calculation (Pathologists/OP's) [Apadectemy]
+
+```{r}
+rper_value2 <- 95/108
+rper_value2
+```
+
+##Calculation (Nurse/OP's) [G-Tube/nissin]
+
+```{r}
+
+rper_value3 <- 28/34
+rper_value3 
+
+
+
+```
+
+
+## 
+
+To decide the Inter-Rater Agreement, or probability of two professionals agreeing on the same surgery without random chance, the most accurate statistic will be Cohen's kappa coefficent.
+
+The calculation is found by :
+
+$$\frac{\rho_0 - \rho_e}{1-p_e}$$
+Where: $$\rho_0$$ is the observed probability
+
+
+And $$\rho_e$$ is the expected probability.
+
+
+
+## Calculation [Apedectemy] (Nurse/OP's)
+
+```{r}
+Observed_Probability <- 5/104
+p1 <- .1/104 * 21/104
+p2 <- 2/104 * 77/104
+p3 <- 2/104 * 49/104
+p4 <- 4/104 * 53/104
+Expected_Probability <- p1 + p2 + p3 + p4
+
+k_value <- (Observed_Probability - Expected_Probability)/(1- Expected_Probability)
+k_value
+
+
+```
+
+To approxiamte a more realistic vlaue with the found kappa value of our sample we resample our data with a non-paramtric bootstrap test, and use 200 simulations to find 500 i.i.d k values approxiamte a normal distribution.We will use theseto find a confidence interval.
+
+```{r}
+##Bootstrap Test
+
+Nurse <- c(rep(1,21),rep(2,77),rep(3,2),rep(4,4))
+OP1 <- c(rep(1,0),rep(2,2),rep(3,49),rep(4,53))
+
+kvalint <- rep(NA,200)
+
+for(i in 1:200){
+  
+  group1 <- sample(Nurse,500, replace = T)
+  group2 <- sample(OP1,500, replace = T)
+  
+  table1 <- table(group1,group2)
+  p1 <- .001 * max(sum(table1[1,])/500,.001)
+  p2 <- max(sum(table1[,1])/500,.001) * max(sum(table1[2,])/500,.001)
+  p3 <- max(sum(table1[,2])/500,.001) * max(sum(table1[3,])/500,.001)
+  p4 <- max(sum(table1[,3])/500,.001) * max(sum(table1[4,])/500,.001)
+  
+  obs_prob <- (table1[2,1] + table1[3,2] + table1[4,3])/500 
+  exp_prob <- p1 + p2 + p3 + p4
+  
+  kvalint[i] <- abs((obs_prob - exp_prob)/(1- exp_prob))
+}
+
+LB1 <- abs(mean(kvalint) - 1.96*sd(kvalint))
+UB1 <- mean(kvalint) + 1.96*sd(kvalint)
+
+Conf_Int1 <- c(0,UB1)
+Conf_Int1
+mean(Nurse)
+mean(OP1)
+```
+
+We can then assume with 95% confidence that on average, the nurses will agree with the OP's on surgerical procedure "cleanliness" is in the interval 
+
+## Calculation [Apedectemy] (OP/Pathologist)
+
+```{r}
+
+
+Noah2 <- cbind(c(0,0,0,0),c(0,1,1,0),c(0,1,55,9),c(0,0,2,39)) 
+obs_1 <- 95/108
+p1 <- .1/108 * .1/108
+p2 <- 2/108 * 2/108
+p3 <- 65/108 * 58/108
+p4 <- 48/108 * 41/108
+exp_1 <- p1 + p2 + p3 + p4
+kvalue1 <- (obs_1 - exp_1)/(1 - exp_1)
+kvalue1
+
+```
+
+```{r}
+##Bootstrap Test
+
+OP2 <- c(rep(2,2),rep(3,58),rep(4,48))
+PATH1 <- c(rep(2,2),rep(3,65),rep(4,41))
+
+kvalint <- rep(NA,200)
+
+for(i in 1:200){
+  
+  group1 <- sample(OP2,500, replace = T)
+  group2 <- sample(PATH1,500, replace = T)
+  group1A <- sort(group1)
+  group2A <- sort(group2)
+  table1 <- table(group1A,group2A)
+  
+  p2 <- max(sum(table1[,1])/500,.001) * max(sum(table1[1,])/500,.001)
+  p3 <- max(sum(table1[,2])/500,.001) * max(sum(table1[2,])/500,.001)
+  p4 <- max(sum(table1[,3])/500,.001) * max(sum(table1[3,])/500,.001)
+  
+  obs_prob <- (table1[1,1] + table1[2,2] + table1[3,3])/500 
+  exp_prob <-  p2 + p3 + p4
+  
+  kvalint[i] <- abs((obs_prob - exp_prob)/(1- exp_prob))
+}
+
+LB1 <- mean(kvalint) - 1.96*sd(kvalint)
+UB1 <- mean(kvalint) + 1.96*sd(kvalint)
+
+Conf_Int1 <- c(LB1,UB1)
+Conf_Int1
+
+
+
+
+```
+  
+## Calculation [G-Tube/nissen]
+
+```{r}
+##K-Test
+Noah3 <- cbind(c(0,0),c(6,28))
+obs_1 <- 28/34
+p1 <- .01/34 * 6/34
+p2 <- 1 * 28/34
+
+exp_1 <- p1 + p2 
+kvalue1 <- abs((obs_1 - exp_1)/(1 - exp_1))
+1-kvalue1
+
+##inconclusive K-Value
+
+```
+
+
+```{r}
+##Based the bootstrap Test based off simple equation statistic
+##Since K-Value is inconslusive
+
+V <- c(rep(1,28),rep(0,6))
+
+kvalint <- rep(NA,200)
+
+for(i in 1:200){
+  
+  group1 <- sample(V,500, replace = T)
+  group2 <- sample(V,500, replace = T)
+  group1A <- sort(group1)
+  group2A <- sort(group2)
+  table1 <- table(group1A,group2A)
+  
+  p2 <- max(sum(table1[,1])/500,.001) * max(sum(table1[1,])/500,.001)
+  p3 <- max(sum(table1[,2])/500,.001) * max(sum(table1[2,])/500,.001)
+ 
+  
+  obs_prob <- (table1[1,1] + table1[2,2])/500 
+  exp_prob <-  p2 + p3 
+  
+  kvalint[i] <- abs((obs_prob - exp_prob)/(1- exp_prob))
+}
+
+LB1 <- mean(kvalint) - 1.96*sd(kvalint)
+UB1 <- mean(kvalint) + 1.96*sd(kvalint)
+
+Conf_Int1 <- c(LB1,1)
+Conf_Int1
+
+###A REACH OF A STATISTIC
+
+```
+
+
+##Calculation (Nurse/Op's) [Assorted Surguries]
+
+```{r}
+
+Noah4 <- cbind(c(13,6,0,0),c(7,80,0,0),c(0,1,7,1),c(0,8,1,1)) 
+obs_1 <- 95/125
+p1 <- 19/125 * 21/125
+p2 <- 87/125 * 101/125
+p3 <- 2/125 * 9/125
+p4 <- 1/125 * 10/125
+exp_1 <- p1 + p2 + p3 + p4
+kvalue1 <- (obs_1 - exp_1)/(1 - exp_1)
+kvalue1
+
+
+```
+
+
+```{r}
+##Bootstrap Test
+OP3 <- c(rep(1,19),rep(2,87),rep(3,9),rep(4,10))
+NURSE2 <- c(rep(1,21),rep(2,101),rep(3,2),rep(4,1))
+
+kvalint <- rep(NA,500)
+
+for(i in 1:500){
+  
+  group1 <- sample(OP3,1000, replace = T)
+  group2 <- sample(NURSE2,1000, replace = T)
+  group1A <- sort(group1)
+  group2A <- sort(group2)
+  table1 <- table(group1A,group2A)
+  p1 <- max(sum(table1[,1])/1000,.001) * max(sum(table1[1,])/1000,.001)
+  p2 <- max(sum(table1[,2])/1000,.001) * max(sum(table1[2,])/1000,.001)
+  p3 <- max(sum(table1[,3])/1000,.001) * max(sum(table1[3,])/1000,.001)
+  p4 <- max(sum(table1[,4])/1000,.001) * max(sum(table1[4,])/1000,.001)
+  
+  obs_prob <- (table1[1,1] + table1[2,2] + table1[3,3] + table1[4,4])/1000 
+  exp_prob <- p1 + p2 + p3 + p4
+  
+  kvalint[i] <- abs((obs_prob - exp_prob)/(1- exp_prob))
+}
+
+LB1 <- mean(kvalint) - 1.96*sd(kvalint)
+UB1 <- mean(kvalint) + 1.96*sd(kvalint)
+
+Conf_Int1 <- c(LB1,UB1)
+Conf_Int1
+
+##Notice how the confidence interval suggest k-values higher than our initial k-value with our data. This means our initial value is apart of the 5% that the confidence interval doesn't account for.A couple Standard Errors away not a big problem.
+##The confidence interval proves to be the more accurate measure.
+```
+
+
+##Calculation (Nurse/OP's) [Total]
+
+```{r}
+
+Noah4 <- cbind(c(13,6,0,0),c(13,110,0,0),c(15,41,1,1),c(7,49,3,4)) 
+obs_1 <- 128/263
+p1 <- 19/263 * 48/263
+p2 <- 123/263 * 206/263
+p3 <- 58/263 * 4/263
+p4 <- 63/263 * 5/263
+exp_1 <- p1 + p2 + p3 + p4
+kvalue1 <- abs((obs_1 - exp_1)/(1 - exp_1))
+kvalue1
+
+
+```
+
+```{r}
+
+#Bootstrap Test
+
+OP4 <- c(rep(1,19),rep(2,123),rep(3,58),rep(4,63))
+NURSE3 <- c(rep(1,48),rep(2,206),rep(3,4),rep(4,5))
+
+kvalint <- rep(NA,500)
+
+for(i in 1:500){
+  
+  group1 <- sample(OP4,1000, replace = T)
+  group2 <- sample(NURSE3,1000, replace = T)
+  group1A <- sort(group1)
+  group2A <- sort(group2)
+  table1 <- table(group1A,group2A)
+  p1 <- max(sum(table1[,1])/1000,.001) * max(sum(table1[1,])/1000,.001)
+  p2 <- max(sum(table1[,2])/1000,.001) * max(sum(table1[2,])/1000,.001)
+  p3 <- max(sum(table1[,3])/1000,.001) * max(sum(table1[3,])/1000,.001)
+  p4 <- max(sum(table1[,4])/1000,.001) * max(sum(table1[4,])/1000,.001)
+  
+  obs_prob <- (table1[1,1] + table1[2,2] + table1[3,3] + table1[4,4])/1000 
+  exp_prob <- p1 + p2 + p3 + p4
+  
+  kvalint[i] <- abs((obs_prob - exp_prob)/(1- exp_prob))
+}
+
+LB1 <- mean(kvalint) - 1.96*sd(kvalint)
+UB1 <- mean(kvalint) + 1.96*sd(kvalint)
+
+Conf_Int1 <- c(LB1,UB1)
+Conf_Int1
+mean(NURSE3)
+mean(OP4)
+##Initial K-Value right on the Upper Boundary of the confidence interval
+```
+
+
+
+
+
+##Gtube reach
+##Difference in assorted surgery initial value and CI
