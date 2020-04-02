@@ -1,0 +1,86 @@
+---
+title: "Inter Rater-Agreement 1st Revision"
+author: "Nathaniel Barrett"
+date: "March 26, 2020"
+output: html_document
+---
+
+```{r}
+Data <- read.csv("WC_Complete.csv")
+
+Pre <- Data[1:234,]
+table(Pre$Concordance) #56/74
+Post <- Data[236:420,]
+table(Post$Concordance) #128/158
+nrow(Data)
+
+head(Data)
+
+
+```
+
+###Initial Statistics : [Pre Data Prob = .534] ; [Post Data Prob = .757]
+###                     [Pre  CI : (.502,.565)] ; [Post CI = (.73,783)]
+###     [Pre R Function : 0.5025204 0.5652789 ] ; [Post R Function 0.72918 0.78329]
+
+
+```{r}
+#Probability (Pre Data) :
+Pre_F <- 125/234
+```
+
+```{r}
+#Pre Frquency CI
+kvalint <- rep(NA,500)
+for(i in 1:500){
+
+   k <- sample(seq(nrow(Pre)),1000, replace = T)
+  Pre1 <- Pre$Concordance[c(k)]
+  table1 <- table(Pre1)
+  
+  
+  kvalint[i] <- table1[1]/1000 
+}
+
+LB1 <- mean(kvalint) - 1.96*sd(kvalint)
+UB1 <- mean(kvalint) + 1.96*sd(kvalint)
+Conf_Int1 <- c(LB1,UB1)
+Conf_Int1
+
+```
+
+```{r}
+binom.test(534,1000, p = Pre_F)
+```
+
+```{r}
+#Probability (Post Data) :
+Post_F <- 140/185
+Post_F
+```
+
+```{r}
+#Post Frquency CI
+kvalint <- rep(NA,500)
+for(i in 1:500){
+
+  k <- sample(seq(nrow(Post)),1000, replace = T)
+  Post1 <- cbind(Post$Nurse.class,Post$OR.class)
+  Post2 <- Post1[c(k),]
+  table1 <- table(Post2[,1],Post2[,2])
+  
+  
+  
+kvalint[i] <- (table1[1,1] + table1[2,2] + table1[3,3] + table1[4,4])/1000 
+}
+
+LB1 <- mean(kvalint) - 1.96*sd(kvalint)
+UB1 <- mean(kvalint) + 1.96*sd(kvalint)
+Conf_Int2 <- c(LB1,UB1)
+Conf_Int2
+
+```
+
+```{r}
+binom.test(757,1000, p = Post_F)
+```
