@@ -30,5 +30,5 @@
 
 [Hit Predictor Shiny App](https://github.com/natebarrett98/My_Projects/tree/master/Baseball%20Hit%20Predictor)
 
-[Projects Done w/ Data Science Union](https://github.com/the-data-science-union/DSU-Curriculum--19-20--)
+[Machine Learning Projects Done w/ Data Science Union](https://github.com/the-data-science-union/DSU-Curriculum--19-20--)
 
