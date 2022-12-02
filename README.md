@@ -22,7 +22,7 @@
 *Done with Ornus Capital (Los Angeles) 2018*
 
 
-[Inter Rater-Agreement Research Project](https://github.com/natebarrett98/My_Projects/blob/master/DB_Job_Report.py)
+[Inter Rater-Agreement Research Project](https://github.com/natebarrett98/My_Projects/blob/master/Inter%20Rater%20Agreement%201st%20Revision.Rmd)
 
 *Done with UCLA, David Geffen School of Medicine (Los Angeles) 2018-2019*
 
